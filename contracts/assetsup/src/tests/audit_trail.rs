@@ -212,11 +212,11 @@ fn test_audit_log_internal_function_not_directly_callable() {
     // This test verifies that append_audit_log is pub(crate) and cannot be called
     // directly from outside the contract. This is enforced at compile time by Rust's
     // visibility rules, so we just document the requirement here.
-    
+
     // The audit::append_audit_log function is marked as pub(crate), which means:
     // 1. It can be called from within the assetsup crate (lib.rs, tokenization.rs, etc.)
     // 2. It CANNOT be called from external contracts or test code outside the crate
     // 3. Only get_asset_log is publicly accessible through the contract interface
-    
+
     // This test passes by virtue of the code compiling with the correct visibility.
 }
