@@ -157,6 +157,15 @@ impl AssetUpContract {
             .persistent()
             .set(&DataKey::TotalAssetCount, &total_count);
 
+        // Append audit log
+        audit::append_audit_log(
+            &env,
+            &asset.id,
+            String::from_str(&env, "ASSET_REGISTERED"),
+            caller.clone(),
+            String::from_str(&env, "Asset registered by authorized registrar"),
+        );
+
         // Emit event
         env.events().publish(
             (symbol_short!("asset_reg"),),
@@ -247,6 +256,15 @@ impl AssetUpContract {
 
         store.set(&key, &asset);
 
+        // Append audit log
+        audit::append_audit_log(
+            &env,
+            &asset_id,
+            String::from_str(&env, "METADATA_UPDATED"),
+            caller.clone(),
+            String::from_str(&env, "Asset metadata updated"),
+        );
+
         // Emit event
         env.events().publish(
             (symbol_short!("asset_upd"),),
@@ -313,6 +331,15 @@ impl AssetUpContract {
         asset.status = AssetStatus::Transferred;
         store.set(&key, &asset);
 
+        // Append audit log
+        audit::append_audit_log(
+            &env,
+            &asset_id,
+            String::from_str(&env, "OWNERSHIP_TRANSFERRED"),
+            caller.clone(),
+            String::from_str(&env, "Asset ownership transferred to new owner"),
+        );
+
         // Emit event
         env.events().publish(
             (symbol_short!("asset_tx"),),
@@ -344,6 +371,15 @@ impl AssetUpContract {
 
         asset.status = AssetStatus::Retired;
         store.set(&key, &asset);
+
+        // Append audit log
+        audit::append_audit_log(
+            &env,
+            &asset_id,
+            String::from_str(&env, "ASSET_RETIRED"),
+            caller.clone(),
+            String::from_str(&env, "Asset retired from active use"),
+        );
 
         // Emit event
         env.events().publish(

@@ -1,6 +1,16 @@
+use crate::audit;
 use crate::error::Error;
 use crate::types::{OwnershipRecord, TokenDataKey, TokenMetadata, TokenizedAsset};
-use soroban_sdk::{Address, Env, String, Vec};
+use soroban_sdk::{Address, BytesN, Env, String, Vec};
+
+/// Helper function to convert u64 asset_id to BytesN<32> for audit logging
+fn asset_id_to_bytes(env: &Env, asset_id: u64) -> BytesN<32> {
+    let mut bytes = [0u8; 32];
+    let id_bytes = asset_id.to_be_bytes();
+    // Place the u64 bytes at the end of the 32-byte array
+    bytes[24..32].copy_from_slice(&id_bytes);
+    BytesN::from_array(env, &bytes)
+}
 
 /// Initialize tokenization by creating tokenized asset
 /// Only contract admin or asset owner can tokenize
@@ -73,6 +83,16 @@ pub fn tokenize_asset(
     let holders_list_key = TokenDataKey::TokenHoldersList(asset_id);
     store.set(&holders_list_key, &holders);
 
+    // Append audit log (convert u64 asset_id to BytesN<32>)
+    let asset_id_bytes = asset_id_to_bytes(env, asset_id);
+    audit::append_audit_log(
+        env,
+        &asset_id_bytes,
+        String::from_str(env, "ASSET_TOKENIZED"),
+        tokenizer.clone(),
+        String::from_str(env, "Asset tokenized with tokens"),
+    );
+
     // Emit event: (asset_id, supply, symbol, decimals, tokenizer)
     env.events().publish(
         ("token", "asset_tokenized"),
@@ -122,6 +142,16 @@ pub fn mint_tokens(
 
     store.set(&holder_key, &ownership);
     store.set(&key, &tokenized_asset.clone());
+
+    // Append audit log
+    let asset_id_bytes = asset_id_to_bytes(env, asset_id);
+    audit::append_audit_log(
+        env,
+        &asset_id_bytes,
+        String::from_str(env, "TOKENS_MINTED"),
+        minter.clone(),
+        String::from_str(env, "Tokens minted"),
+    );
 
     // Emit event: (asset_id, amount, new_supply)
     env.events().publish(
@@ -176,6 +206,16 @@ pub fn burn_tokens(
 
     store.set(&holder_key, &ownership);
     store.set(&key, &tokenized_asset.clone());
+
+    // Append audit log
+    let asset_id_bytes = asset_id_to_bytes(env, asset_id);
+    audit::append_audit_log(
+        env,
+        &asset_id_bytes,
+        String::from_str(env, "TOKENS_BURNED"),
+        burner.clone(),
+        String::from_str(env, "Tokens burned"),
+    );
 
     // Emit event: (asset_id, amount, new_supply)
     env.events().publish(
@@ -268,6 +308,16 @@ pub fn transfer_tokens(
         holders.push_back(to.clone());
         store.set(&holders_list_key, &holders);
     }
+
+    // Append audit log
+    let asset_id_bytes = asset_id_to_bytes(env, asset_id);
+    audit::append_audit_log(
+        env,
+        &asset_id_bytes,
+        String::from_str(env, "TOKENS_TRANSFERRED"),
+        from.clone(),
+        String::from_str(env, "Tokens transferred to recipient"),
+    );
 
     // Emit event: (asset_id, from, to, amount)
     env.events().publish(
