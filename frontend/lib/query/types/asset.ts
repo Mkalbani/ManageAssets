@@ -17,15 +17,24 @@ export enum AssetCondition {
   DAMAGED = 'DAMAGED',
 }
 
-export interface AssetCategory {
+export interface Category {
   id: string;
   name: string;
   description?: string;
 }
 
+export interface CategoryWithCount extends Category {
+  assetCount: number;
+}
+
 export interface Department {
   id: string;
   name: string;
+  description?: string;
+}
+
+export interface DepartmentWithCount extends Department {
+  assetCount: number;
 }
 
 export interface AssetUser {
@@ -39,7 +48,7 @@ export interface Asset {
   assetId: string;
   name: string;
   description: string | null;
-  category: AssetCategory;
+  category: Category;
   serialNumber: string | null;
   purchaseDate: string | null;
   purchasePrice: number | null;
