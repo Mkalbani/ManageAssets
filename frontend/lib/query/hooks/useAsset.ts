@@ -11,6 +11,7 @@ import {
   Asset,
   AssetHistoryEvent,
   AssetDocument,
+  AssetStatus,
   MaintenanceRecord,
   AssetNote,
   UpdateAssetStatusInput,
@@ -24,6 +25,36 @@ import {
 import { ApiError } from '../types';
 
 // Queries
+export function useAssets(
+  params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: AssetStatus;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  },
+  options?: Omit<UseQueryOptions<{
+    assets: Asset[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }, ApiError>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery<{
+    assets: Asset[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }, ApiError>({
+    queryKey: queryKeys.assets.list(params || {}),
+    queryFn: () => assetApiClient.getAssets(params),
+    ...options,
+  });
+}
+
 export function useAsset(
   id: string,
   options?: Omit<UseQueryOptions<Asset, ApiError>, 'queryKey' | 'queryFn'>
