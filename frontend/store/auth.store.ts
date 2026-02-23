@@ -1,0 +1,75 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+
+interface AuthStore {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  setAuth: (token: string, user: User) => void;
+  logout: () => void;
+  loadAuthFromStorage: () => void;
+}
+
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      
+      setAuth: (token: string, user: User) => {
+        // Store token in localStorage for API calls
+        localStorage.setItem('token', token);
+        
+        // Set cookie for middleware
+        document.cookie = `auth-token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''}`;
+        
+        set({
+          token,
+          user,
+          isAuthenticated: true,
+        });
+      },
+      
+      logout: () => {
+        localStorage.removeItem('token');
+        document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        set({
+          token: null,
+          user: null,
+          isAuthenticated: false,
+        });
+      },
+      
+      loadAuthFromStorage: () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+          // For now, we'll need to validate the token or decode it
+          // In a real app, you might want to validate the token on app load
+          const user = JSON.parse(localStorage.getItem('user') || 'null');
+          if (user) {
+            set({
+              token,
+              user,
+              isAuthenticated: true,
+            });
+          }
+        }
+      },
+    }),
+    {
+      name: 'auth-storage',
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
+  )
+);
