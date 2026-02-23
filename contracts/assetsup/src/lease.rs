@@ -16,15 +16,15 @@ pub enum LeaseStatus {
 #[contracttype]
 #[derive(Clone, Debug)]
 pub struct Lease {
-    pub lease_id:        BytesN<32>,
-    pub asset_id:        BytesN<32>,
-    pub lessor:          Address,
-    pub lessee:          Address,
+    pub lease_id: BytesN<32>,
+    pub asset_id: BytesN<32>,
+    pub lessor: Address,
+    pub lessee: Address,
     pub start_timestamp: u64,
-    pub end_timestamp:   u64,
+    pub end_timestamp: u64,
     pub rent_per_period: i128,
-    pub deposit:         i128,
-    pub status:          LeaseStatus,
+    pub deposit: i128,
+    pub status: LeaseStatus,
 }
 
 // ─── Storage Keys ─────────────────────────────────────────────────────────────
@@ -83,21 +83,25 @@ fn append_lessee_lease(env: &Env, lessee: &Address, lease_id: &BytesN<32>) {
 // ─── Public functions (called from lib.rs) ────────────────────────────────────
 
 pub fn create_lease(
-    env:      &Env,
+    env: &Env,
     asset_id: BytesN<32>,
     lease_id: BytesN<32>,
-    lessor:   Address,
-    lessee:   Address,
-    start:    u64,
-    end:      u64,
-    rent:     i128,
-    deposit:  i128,
+    lessor: Address,
+    lessee: Address,
+    start: u64,
+    end: u64,
+    rent: i128,
+    deposit: i128,
 ) -> Result<(), Error> {
     if end <= start {
         return Err(Error::InvalidTimestamps);
     }
 
-    if env.storage().persistent().has(&DataKey::Lease(lease_id.clone())) {
+    if env
+        .storage()
+        .persistent()
+        .has(&DataKey::Lease(lease_id.clone()))
+    {
         return Err(Error::LeaseAlreadyExists);
     }
 
@@ -110,15 +114,15 @@ pub fn create_lease(
     }
 
     let lease = Lease {
-        lease_id:        lease_id.clone(),
-        asset_id:        asset_id.clone(),
-        lessor:          lessor.clone(),
-        lessee:          lessee.clone(),
+        lease_id: lease_id.clone(),
+        asset_id: asset_id.clone(),
+        lessor: lessor.clone(),
+        lessee: lessee.clone(),
         start_timestamp: start,
-        end_timestamp:   end,
+        end_timestamp: end,
         rent_per_period: rent,
         deposit,
-        status:          LeaseStatus::Active,
+        status: LeaseStatus::Active,
     };
 
     save_lease(env, &lease);
@@ -211,8 +215,7 @@ pub fn get_lease(env: &Env, lease_id: BytesN<32>) -> Result<Lease, Error> {
 }
 
 pub fn get_asset_active_lease(env: &Env, asset_id: BytesN<32>) -> Option<Lease> {
-    get_active_lease_id(env, &asset_id)
-        .and_then(|id| load_lease(env, &id).ok())
+    get_active_lease_id(env, &asset_id).and_then(|id| load_lease(env, &id).ok())
 }
 
 pub fn get_lessee_leases(env: &Env, lessee: Address) -> Vec<BytesN<32>> {
