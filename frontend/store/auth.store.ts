@@ -26,9 +26,10 @@ export const useAuthStore = create<AuthStore>()(
       setAuth: (token: string, user: User) => {
         // Store token in localStorage for API calls
         localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
         
         // Set cookie for middleware
-        document.cookie = `auth-token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''}`;
+        document.cookie = `auth-token=${token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict; ${typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'Secure;' : ''}`;
         
         set({
           token,
