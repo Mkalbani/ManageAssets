@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/assets/status-badge";
 import { ConditionBadge } from "@/components/assets/condition-badge";
 import { useAsset, useAssetHistory } from "@/lib/query/hooks/useAsset";
+import { useAuthStore } from "@/store/auth.store";
+import { TransferAssetDialog } from "@/components/assets/transfer-dialog";
+import { MoveHorizontal } from "lucide-react";
 
 type Tab = "overview" | "history" | "documents";
 
@@ -15,6 +18,8 @@ export default function AssetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
+  const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const { user } = useAuthStore();
 
   const { data: asset, isLoading } = useAsset(id);
   const { data: history = [] } = useAssetHistory(id);
@@ -73,6 +78,16 @@ export default function AssetDetailPage() {
               <ConditionBadge condition={asset.condition} />
             </div>
           </div>
+
+          {(user?.role === 'ADMIN' || user?.role === 'MANAGER') && (
+            <Button
+              onClick={() => setIsTransferOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <MoveHorizontal size={16} />
+              Transfer Asset
+            </Button>
+          )}
         </div>
       </div>
 
@@ -82,11 +97,10 @@ export default function AssetDetailPage() {
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${
-              tab === key
+            className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px ${tab === key
                 ? "border-gray-900 text-gray-900"
                 : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
+              }`}
           >
             {icon}
             {label}
@@ -235,6 +249,14 @@ export default function AssetDetailPage() {
       )}
 
       {tab === "documents" && <AssetDocumentsSection assetId={id} />}
+
+      {isTransferOpen && (
+        <TransferAssetDialog
+          assetId={id}
+          assetName={asset.name}
+          onClose={() => setIsTransferOpen(false)}
+        />
+      )}
     </div>
   );
 }
