@@ -1,7 +1,8 @@
 #![allow(dead_code)]
 
+use crate::audit;
 use crate::Error;
-use soroban_sdk::{contracttype, log, Address, BytesN, Env, Vec};
+use soroban_sdk::{contracttype, log, Address, BytesN, Env, String, Vec};
 
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -125,6 +126,15 @@ pub fn create_policy(env: Env, policy: InsurancePolicy) -> Result<(), Error> {
     list.push_back(policy.policy_id.clone());
     store.set(&DataKey::AssetPolicies(policy.asset_id.clone()), &list);
 
+    // Append audit log
+    audit::append_audit_log(
+        &env,
+        &policy.asset_id,
+        String::from_str(&env, "INSURANCE_POLICY_CREATED"),
+        policy.insurer.clone(),
+        String::from_str(&env, "Insurance policy created"),
+    );
+
     log!(&env, "PolicyCreated: {:?}", policy.policy_id);
     Ok(())
 }
@@ -148,6 +158,15 @@ pub fn cancel_policy(env: Env, policy_id: BytesN<32>, caller: Address) -> Result
 
     policy.status = PolicyStatus::Cancelled;
     store.set(&key, &policy);
+
+    // Append audit log
+    audit::append_audit_log(
+        &env,
+        &policy.asset_id,
+        String::from_str(&env, "INSURANCE_POLICY_CANCELLED"),
+        caller,
+        String::from_str(&env, "Insurance policy cancelled"),
+    );
 
     log!(&env, "PolicyCancelled: {:?}", policy_id);
     Ok(())
@@ -245,6 +264,15 @@ pub fn renew_policy(
     policy.last_payment = current_time;
 
     store.set(&key, &policy);
+
+    // Append audit log
+    audit::append_audit_log(
+        &env,
+        &policy.asset_id,
+        String::from_str(&env, "INSURANCE_POLICY_RENEWED"),
+        insurer,
+        String::from_str(&env, "Insurance policy renewed"),
+    );
 
     log!(&env, "PolicyRenewed: {:?}", policy_id);
     Ok(())

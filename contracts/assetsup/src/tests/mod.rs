@@ -4,6 +4,7 @@ mod helpers;
 // Core contract tests
 mod admin;
 mod asset;
+mod audit_trail;
 mod initialization;
 
 // Tokenization and ownership tests
