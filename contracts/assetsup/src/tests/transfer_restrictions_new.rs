@@ -166,3 +166,104 @@ fn test_get_transfer_restriction() {
     assert!(before_err);
     assert!(after_require_accredited);
 }
+
+#[test]
+fn test_validate_transfer_blocked_when_not_whitelisted() {
+    let env = Env::default();
+    let contract_id = env.register(AssetUpContract, ());
+    let tokenizer = Address::generate(&env);
+    let whitelisted = Address::generate(&env);
+    let not_whitelisted = Address::generate(&env);
+    let asset_id = 901u64;
+
+    let (allowed_result, blocked_result) = env.as_contract(&contract_id, || {
+        setup_tokenized_asset(&env, asset_id, &tokenizer);
+
+        // Add only `whitelisted` to the whitelist
+        transfer_restrictions::add_to_whitelist(&env, asset_id, whitelisted.clone()).unwrap();
+
+        // Transfer to whitelisted address should be allowed
+        let allowed = transfer_restrictions::validate_transfer(
+            &env,
+            asset_id,
+            tokenizer.clone(),
+            whitelisted.clone(),
+        );
+
+        // Transfer to non-whitelisted address should be blocked
+        let blocked = transfer_restrictions::validate_transfer(
+            &env,
+            asset_id,
+            tokenizer.clone(),
+            not_whitelisted.clone(),
+        );
+
+        (allowed, blocked)
+    });
+
+    assert!(allowed_result.is_ok());
+    assert!(blocked_result.is_err());
+}
+
+#[test]
+fn test_validate_transfer_empty_whitelist_allows_all() {
+    let env = Env::default();
+    let contract_id = env.register(AssetUpContract, ());
+    let tokenizer = Address::generate(&env);
+    let recipient = Address::generate(&env);
+    let asset_id = 902u64;
+
+    let result = env.as_contract(&contract_id, || {
+        setup_tokenized_asset(&env, asset_id, &tokenizer);
+
+        // No whitelist entries — transfer should be allowed
+        transfer_restrictions::validate_transfer(
+            &env,
+            asset_id,
+            tokenizer.clone(),
+            recipient.clone(),
+        )
+    });
+
+    assert!(result.is_ok());
+    assert!(result.unwrap());
+}
+
+#[test]
+fn test_validate_transfer_accredited_required_uses_whitelist() {
+    let env = Env::default();
+    let contract_id = env.register(AssetUpContract, ());
+    let tokenizer = Address::generate(&env);
+    let accredited = Address::generate(&env);
+    let non_accredited = Address::generate(&env);
+    let asset_id = 903u64;
+
+    let (ok_result, err_result) = env.as_contract(&contract_id, || {
+        setup_tokenized_asset(&env, asset_id, &tokenizer);
+
+        // Set accredited requirement; whitelist acts as the accredited registry
+        let restriction = TransferRestriction {
+            require_accredited: true,
+            geographic_allowed: soroban_sdk::Vec::new(&env),
+        };
+        transfer_restrictions::set_transfer_restriction(&env, asset_id, restriction).unwrap();
+        transfer_restrictions::add_to_whitelist(&env, asset_id, accredited.clone()).unwrap();
+
+        let ok = transfer_restrictions::validate_transfer(
+            &env,
+            asset_id,
+            tokenizer.clone(),
+            accredited.clone(),
+        );
+        let err = transfer_restrictions::validate_transfer(
+            &env,
+            asset_id,
+            tokenizer.clone(),
+            non_accredited.clone(),
+        );
+        (ok, err)
+    });
+
+    assert!(ok_result.is_ok());
+    assert!(err_result.is_err());
+}
