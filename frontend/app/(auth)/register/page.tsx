@@ -30,6 +30,8 @@ export default function RegisterPage() {
   const { setAuth } = useAuthStore();
   const [apiError, setApiError] = useState("");
 
+  const [password, setPassword] = useState("");
+
   const {
     register,
     handleSubmit,
@@ -44,7 +46,7 @@ export default function RegisterPage() {
       // Auto-login after successful registration
       loginMutation.mutate({
         email: data.user.email,
-        password: "", // We don't have the password here, need to handle differently
+        password: password, // Use the password from form state
       });
     },
     onError: (error: any) => {
@@ -73,9 +75,8 @@ export default function RegisterPage() {
 
   const onSubmit = (data: RegisterFormData) => {
     setApiError("");
+    setPassword(data.password); // Store password for auto-login
     
-    // For now, we'll register and then require manual login
-    // In a real implementation, you might want to handle auto-login differently
     const { confirmPassword, ...registerData } = data;
     
     registerMutation.mutate({
