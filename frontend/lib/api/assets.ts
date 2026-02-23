@@ -6,9 +6,12 @@ import {
   AssetHistoryFilters,
   AssetNote,
   AssetUser,
+  Category,
+  CategoryWithCount,
   CreateMaintenanceInput,
   CreateNoteInput,
   Department,
+  DepartmentWithCount,
   MaintenanceRecord,
   TransferAssetInput,
   UpdateAssetStatusInput,
@@ -46,8 +49,34 @@ export const assetApiClient = {
     return apiClient.request<AssetNote[]>(`/assets/${id}/notes`);
   },
 
-  getDepartments(): Promise<Department[]> {
-    return apiClient.request<Department[]>('/departments');
+  getDepartments(): Promise<DepartmentWithCount[]> {
+    return apiClient.request<DepartmentWithCount[]>('/departments');
+  },
+
+  createDepartment(data: { name: string; description?: string }): Promise<Department> {
+    return apiClient.request<Department>('/departments', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteDepartment(id: string): Promise<void> {
+    return apiClient.request<void>(`/departments/${id}`, { method: 'DELETE' });
+  },
+
+  getCategories(): Promise<CategoryWithCount[]> {
+    return apiClient.request<CategoryWithCount[]>('/categories');
+  },
+
+  createCategory(data: { name: string; description?: string }): Promise<Category> {
+    return apiClient.request<Category>('/categories', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  deleteCategory(id: string): Promise<void> {
+    return apiClient.request<void>(`/categories/${id}`, { method: 'DELETE' });
   },
 
   getUsers(): Promise<AssetUser[]> {
