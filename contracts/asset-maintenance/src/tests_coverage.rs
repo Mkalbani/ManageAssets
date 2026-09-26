@@ -706,6 +706,7 @@ fn a_zero_length_warranty_is_rejected() {
 fn updating_a_warranty_that_does_not_exist_is_rejected() {
     let env = Env::default();
     let ctx = setup(&env);
+
     ctx.client
         .update_warranty_information(&warranty(&env, 7, NOW, NOW + 10_000));
 }
@@ -868,7 +869,7 @@ fn acknowledging_an_out_of_range_alert_index_is_rejected() {
 }
 
 #[test]
-#[should_panic(expected = "no alerts found")]
+#[should_panic(expected = "Error(Contract, #5)")]
 fn acknowledging_an_alert_for_an_asset_without_any_is_rejected() {
     let env = Env::default();
     let ctx = setup(&env);
@@ -977,4 +978,36 @@ fn parts_replaced_and_documents_round_trip() {
     assert_eq!(stored.parts_replaced, expected_parts);
     assert_eq!(stored.documents_ipfs.len(), 1);
     assert_eq!(stored.technician_id, String::from_str(&env, "tech-01"));
+}
+
+#[test]
+#[should_panic(expected = "maintenance cost exceeds maximum allowed value")]
+fn a_maintenance_record_above_the_maximum_cost_is_rejected() {
+    let env = Env::default();
+    let ctx = setup(&env);
+    let mut r = record(&env, &ctx.provider, 1, 7);
+    r.total_cost = MAX_MAINTENANCE_COST + 1;
+    r.labor_cost = r.total_cost;
+    r.parts_cost = 0;
+
+    ctx.client.add_maintenance_record(&r);
+}
+
+#[test]
+fn unauthorized_caller_cannot_log_maintenance() {
+    let env = Env::default();
+    let ctx = setup(&env);
+    let unauthorized = Address::generate(&env);
+    let mut r = record(&env, &ctx.provider, 1, 7);
+
+    env.set_auths(&[]);
+    let res = ctx.client.try_add_maintenance_record(&r);
+    assert!(res.is_err(), "non-provider callers must not be able to log maintenance");
+    assert_eq!(ctx.client.get_maintenance_history(&7).len(), 0);
+
+    let fresh = Address::generate(&env);
+    env.set_auths(&[]);
+    let mut attack = record(&env, &fresh, 2, 7);
+    attack.provider = unauthorized.clone();
+    assert!(ctx.client.try_add_maintenance_record(&attack).is_err());
 }

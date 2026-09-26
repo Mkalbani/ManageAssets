@@ -5,7 +5,7 @@
 //! `lower_snake_case`. `asset_id` is always a `#[topic]` so consumers can index
 //! per asset.
 
-use soroban_sdk::{contractevent, Address, Env};
+use soroban_sdk::{contractevent, Address, Env, String};
 
 use crate::{AlertSeverity, AlertType, MaintenanceAlert, MaintenanceRecord, ScheduledMaintenance};
 
@@ -76,6 +76,7 @@ pub struct MaintenanceCompleted {
     pub asset_id: u64,
     pub record_id: u64,
     pub provider: Address,
+    pub technician_id: String,
     pub timestamp: u64,
 }
 
@@ -193,6 +194,7 @@ pub fn maintenance_completed(env: &Env, asset_id: u64, record: &MaintenanceRecor
         asset_id,
         record_id: record.record_id,
         provider: record.provider.clone(),
+        technician_id: record.technician_id.clone(),
         timestamp: env.ledger().timestamp(),
     }
     .publish(env);

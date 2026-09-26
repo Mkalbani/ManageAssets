@@ -32,6 +32,8 @@ mod tests_coverage;
 
 pub use crate::error::{handle_error, Error};
 
+const MAX_MAINTENANCE_COST: i128 = 1_000_000_000_000_000_000; // 1e17
+
 #[contracttype]
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum MaintenanceType {
@@ -261,7 +263,7 @@ impl AssetMaintenanceContract {
             .storage()
             .persistent()
             .get(&DataKey::Provider(record.provider.clone()))
-            .unwrap_or_else(|| handle_error(&env, Error::ProviderNotRegistered));
+            .unwrap_or_else(|| panic!("provider not registered"));
         if !provider_data.is_active {
             panic!("provider is inactive");
         }
@@ -272,6 +274,9 @@ impl AssetMaintenanceContract {
         }
         if record.labor_cost < 0 || record.parts_cost < 0 || record.total_cost < 0 {
             panic!("cost values must be non-negative");
+        }
+        if record.total_cost > MAX_MAINTENANCE_COST {
+            panic!("maintenance cost exceeds maximum allowed value");
         }
         if record.labor_cost + record.parts_cost != record.total_cost {
             panic!("labor + parts cost must equal total cost");
@@ -285,6 +290,11 @@ impl AssetMaintenanceContract {
         }
         if record.quality_rating < 1 || record.quality_rating > 10 {
             panic!("quality rating must be 1-10");
+        }
+
+        // Reject out-of-range maintenance totals before persisting the record
+        if record.total_cost.abs() > MAX_MAINTENANCE_COST {
+            panic!("total cost exceeds maximum allowed value");
         }
 
         // 3. Verify asset exists

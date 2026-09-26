@@ -33,7 +33,7 @@ export default function AuditsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Audits / Stocktake</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Verify physical assets exist where the system says they do
+            Physical verification checklist for assets in a department or location
           </p>
         </div>
         <Button size="sm" onClick={() => setShowWizard(true)}>

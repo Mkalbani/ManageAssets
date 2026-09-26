@@ -30,7 +30,7 @@ const navItems = [
   { href: "/vendors", label: "Vendors", icon: Store },
   { href: "/purchase-orders", label: "Purchase Orders", icon: FileText },
   { href: "/maintenance", label: "Maintenance", icon: Wrench },
-  { href: "/audits", label: "Audits", icon: ClipboardCheck },
+  { href: "/audits", label: "Audits / Stocktake", icon: ClipboardCheck },
   { href: "/licenses", label: "Licenses", icon: KeyRound },
   { href: "/users", label: "Users", icon: Users },
   { href: "/departments", label: "Organisation", icon: Building2 },
