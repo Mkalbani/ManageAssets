@@ -50,7 +50,10 @@ export function Topbar({ onMenuClick, menuOpen }: TopbarProps) {
   // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     }
@@ -84,61 +87,77 @@ export function Topbar({ onMenuClick, menuOpen }: TopbarProps) {
       <div className="flex items-center gap-3">
         <WalletButton />
         <div className="relative" ref={dropdownRef}>
-        <button
-          onClick={() => setDropdownOpen((v) => !v)}
-          aria-label="Open user menu"
-          aria-haspopup="true"
-          aria-expanded={dropdownOpen}
-          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
-        >
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-            {user ? (
-              <span className="text-xs font-semibold text-gray-700">{initials}</span>
-            ) : (
-              <User size={15} className="text-gray-500" />
+          <button
+            onClick={() => setDropdownOpen((v) => !v)}
+            aria-label="Open user menu"
+            aria-haspopup="true"
+            aria-expanded={dropdownOpen}
+            className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          >
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+              {user ? (
+                <span className="text-xs font-semibold text-gray-700">
+                  {initials}
+                </span>
+              ) : (
+                <User size={15} className="text-gray-500" />
+              )}
+            </div>
+            {user && (
+              <div className="hidden sm:block text-left">
+                <p className="text-sm font-medium text-gray-900 leading-none">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5 capitalize">
+                  {user.role}
+                </p>
+              </div>
             )}
-          </div>
-          {user && (
-            <div className="hidden sm:block text-left">
-              <p className="text-sm font-medium text-gray-900 leading-none">
-                {user.firstName} {user.lastName}
-              </p>
-              <p className="text-xs text-gray-400 mt-0.5 capitalize">{user.role}</p>
+            <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
+          </button>
+
+          {dropdownOpen && (
+            <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-md py-1 z-50">
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  router.push("/settings");
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                View Profile
+              </button>
+              <div className="border-t border-gray-100 my-1" />
+              <div className="px-4 py-2">
+                <p className="text-xs text-gray-400 mb-1">Theme</p>
+                <div className="flex gap-1">
+                  {(["light", "dark", "system"] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => setTheme(t)}
+                      className={`px-2 py-1 text-xs rounded ${theme === t ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"}`}
+                    >
+                      {t === "light" ? (
+                        <Sun className="w-3 h-3" />
+                      ) : t === "dark" ? (
+                        <Moon className="w-3 h-3" />
+                      ) : (
+                        <Monitor className="w-3 h-3" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="border-t border-gray-100 my-1" />
+              <button
+                onClick={handleLogout}
+                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+              >
+                Logout
+              </button>
             </div>
           )}
-          <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
-        </button>
-
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-md py-1 z-50">
-            <button
-              onClick={() => { setDropdownOpen(false); router.push("/settings"); }}
-              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-            >
-              View Profile
-            </button>
-            <div className="border-t border-gray-100 my-1" />
-            <div className="px-4 py-2">
-              <p className="text-xs text-gray-400 mb-1">Theme</p>
-              <div className="flex gap-1">
-                {(["light", "dark", "system"] as const).map((t) => (
-                  <button key={t} onClick={() => setTheme(t)}
-                    className={`px-2 py-1 text-xs rounded ${theme === t ? "bg-gray-900 text-white" : "text-gray-600 hover:bg-gray-100"}`}>
-                    {t === "light" ? <Sun className="w-3 h-3" /> : t === "dark" ? <Moon className="w-3 h-3" /> : <Monitor className="w-3 h-3" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="border-t border-gray-100 my-1" />
-            <button
-              onClick={handleLogout}
-              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
-            >
-              Logout
-            </button>
-          </div>
-        )}
-      </div>
+        </div>
       </div>
     </header>
   );

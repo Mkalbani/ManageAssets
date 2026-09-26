@@ -179,7 +179,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 />
               </svg>
             </div>
-            <span className="font-semibold text-gray-900 text-sm">AssetsUp</span>
+            <span className="font-semibold text-gray-900 text-sm">
+              AssetsUp
+            </span>
           </div>
           {/* Close button - visible on mobile; min 44×44 touch target */}
           <button
@@ -193,7 +195,10 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label="Site pages">
+        <nav
+          className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto"
+          aria-label="Site pages"
+        >
           {navItems.map(({ href, label, icon: Icon }) => {
             const active = isActiveRoute(pathname, href);
             return (

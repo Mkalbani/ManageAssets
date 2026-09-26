@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useAuditLogs, AuditLogFilters } from '@/lib/query/hooks/useAuditLogs';
-import { useAuthStore } from '@/store/auth.store';
+import { useState } from "react";
+import { useAuditLogs, AuditLogFilters } from "@/lib/query/hooks/useAuditLogs";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function AuditLogPage() {
   const user = useAuthStore((s) => s.user);
   const [filters, setFilters] = useState<AuditLogFilters>({
     page: 1,
     limit: 20,
-    entityType: 'ALL',
-    action: 'ALL',
+    entityType: "ALL",
+    action: "ALL",
   });
 
   const { data, isLoading } = useAuditLogs({
     ...filters,
-    entityType: filters.entityType === 'ALL' ? undefined : filters.entityType,
-    action: filters.action === 'ALL' ? undefined : filters.action,
+    entityType: filters.entityType === "ALL" ? undefined : filters.entityType,
+    action: filters.action === "ALL" ? undefined : filters.action,
   });
 
   return (
@@ -31,8 +31,14 @@ export default function AuditLogPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex gap-3 mb-4">
           <select
-            value={filters.entityType || 'ALL'}
-            onChange={(e) => setFilters((prev) => ({ ...prev, entityType: e.target.value, page: 1 }))}
+            value={filters.entityType || "ALL"}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                entityType: e.target.value,
+                page: 1,
+              }))
+            }
             className="text-sm border border-gray-300 rounded-lg px-3 py-2"
           >
             <option value="ALL">All Entities</option>
@@ -42,8 +48,14 @@ export default function AuditLogPage() {
             <option value="auth">Auth</option>
           </select>
           <select
-            value={filters.action || 'ALL'}
-            onChange={(e) => setFilters((prev) => ({ ...prev, action: e.target.value, page: 1 }))}
+            value={filters.action || "ALL"}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                action: e.target.value,
+                page: 1,
+              }))
+            }
             className="text-sm border border-gray-300 rounded-lg px-3 py-2"
           >
             <option value="ALL">All Actions</option>
@@ -72,14 +84,20 @@ export default function AuditLogPage() {
               <tbody>
                 {data.data.map((log) => (
                   <tr key={log.id} className="border-b border-gray-100">
-                    <td className="px-3 py-2 text-gray-600">{new Date(log.timestamp).toLocaleString()}</td>
-                    <td className="px-3 py-2 text-gray-900">{log.actor.email}</td>
+                    <td className="px-3 py-2 text-gray-600">
+                      {new Date(log.timestamp).toLocaleString()}
+                    </td>
+                    <td className="px-3 py-2 text-gray-900">
+                      {log.actor.email}
+                    </td>
                     <td className="px-3 py-2">
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700">
                         {log.action}
                       </span>
                     </td>
-                    <td className="px-3 py-2 text-gray-600">{log.entityType}</td>
+                    <td className="px-3 py-2 text-gray-600">
+                      {log.entityType}
+                    </td>
                     <td className="px-3 py-2 text-gray-900">{log.summary}</td>
                   </tr>
                 ))}
